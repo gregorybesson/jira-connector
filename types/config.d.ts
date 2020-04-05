@@ -21,6 +21,9 @@ export interface Config {
     token: string;
     token_secret: string;
   };
+  bearer?: {
+    token: string;
+  };
   jwt?: {
     iss: string;
     secret: string;
