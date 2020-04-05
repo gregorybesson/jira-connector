@@ -155,6 +155,8 @@ var worklog = require('./api/worklog');
  * @param {string} [config.oauth.token] The VERIFIED token used to connect to the Jira API.  MUST be included if using
  *     OAuth.
  * @param {string} [config.oauth.token_secret] The secret for the above token.  MUST be included if using Oauth.
+ * @param {Object} [config.bearer] The Bearer configuration object to use with oauth2 (3LO) for apps
+ * @param {string} config.bearer.token The Bearer token. MUST be included
  * @param {Object} [config.jwt] The JWT configuration object that contains iss:secret
  * @param {string} config.jwt.iss The Jira app key (can be found in the app descriptor). MUST be included
  * @param {string} config.jwt.secret The JWT secret token. MUST be included
@@ -240,6 +242,14 @@ var JiraClient = module.exports = function (config) {
         } else if (!config.jwt.iss) {
           throw new Error(errorStrings.NO_JWT_ISS_KEY_ERROR);
         }
+      }
+    } else if (config.bearer) {
+      if (config.bearer.token) {
+        this.bearer = {
+          token: config.bearer.token
+        };
+      } else {
+        throw new Error(errorStrings.NO_BEARER_TOKEN_ERROR);
       }
     }
 
@@ -458,6 +468,13 @@ var JiraClient = module.exports = function (config) {
               options.headers = {};
             }
             options.headers['Authorization'] = `JWT ${jwtToken}`;
+        } else if (this.bearer) {
+          if (this.bearer.token) {
+                if (!options.headers) {
+                    options.headers = {}
+                }
+                options.headers['Authorization'] = 'Bearer ' + this.bearer.token
+            }
         }
 
         if (this.cookie_jar) {
